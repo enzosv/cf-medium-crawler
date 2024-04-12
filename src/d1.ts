@@ -19,13 +19,13 @@ export async function logPage(db: D1Database, page: Page) {
 
 export async function initDB(db: D1Database): Promise<D1Result<unknown>[]> {
   const posts = db.prepare(`CREATE TABLE IF NOT EXISTS posts (
-          post_id text not null primary key,
-          title TEXT not null,
-          published_at INTEGER not null,
+          post_id TEXT NOT NULL PRIMARY KEY,
+          title TEXT NOT NULL,
+          published_at INTEGER NOT NULL,
           updated_at INTEGER,
-          collection text,
-          creator text not null,
-          is_paid INTEGER not null default 0,
+          collection TEXT,
+          creator TEXT NOT NULL,
+          is_paid INTEGER NOT NULL DEFAULT 0,
           reading_time REAL,
           total_clap_count INTEGER,
           tags TEXT,
@@ -34,13 +34,22 @@ export async function initDB(db: D1Database): Promise<D1Result<unknown>[]> {
           response_count INTEGER
       );`);
   const pages = db.prepare(`CREATE TABLE IF NOT EXISTS "pages" (
-          id text not null, 
-          name text, 
-          page_type integer not null, 
-          last_query integer, 
+          id TEXT NOT NULL, 
+          name TEXT, 
+          page_type INTEGER NOT NULL, 
+          last_query INTEGER, 
           PRIMARY KEY (id, page_type)
       );`);
-  return db.batch([posts, pages]);
+  // need a starting point for crawling
+  const pageInsert = db
+    .prepare(
+      `INSERT INTO pages(id, page_type) 
+      values(?, ?, ?)
+      ON CONFLICT (id, page_type) DO UPDATE SET 
+      name = COALESCE(EXCLUDED.name, pages.name);`
+    )
+    .bind("255dbed17b9e", 2);
+  return db.batch([posts, pages, pageInsert]);
 }
 
 export async function queryPages(db: D1Database): Promise<D1Result<Page>> {
@@ -95,8 +104,8 @@ export async function saveMedium(
   values(?, ?, ?)
   ON CONFLICT (id, page_type) DO UPDATE SET 
   name = COALESCE(EXCLUDED.name, pages.name);`);
-  const batch = [];
-  const tags = [];
+  const batch: D1PreparedStatement[] = [];
+  const tags: string[] = [];
   for (const key in references.Post) {
     const post = references.Post[key];
     const postTags = post.virtuals.tags.map(function (tag) {
