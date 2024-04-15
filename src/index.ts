@@ -51,21 +51,26 @@ async function importMedium(db: D1Database) {
       if (next?.to) {
         url.searchParams.append("next", next.to);
       }
-      const payload = await fetchMedium(url.toString());
-      await saveMedium(payload.references, db);
-      contributions++;
-      const newNext = payload.paging.next;
-      if (newNext) {
-        if (
-          next &&
-          (newNext.to <= next.to ||
-            newNext.page <= next.page ||
-            newNext.ignoredIds == next.ignoredIds)
-        ) {
-          next = undefined;
-          break;
+      try {
+        const payload = await fetchMedium(url.toString());
+        await saveMedium(payload.references, db);
+        contributions++;
+        const newNext = payload.paging.next;
+        if (newNext) {
+          if (
+            next &&
+            (newNext.to <= next.to ||
+              newNext.page <= next.page ||
+              newNext.ignoredIds == next.ignoredIds)
+          ) {
+            next = undefined;
+            break;
+          }
+          next = payload.paging.next;
         }
-        next = payload.paging.next;
+      } catch (error) {
+        console.error(error);
+        return;
       }
     } while (next);
     await logPage(db, page);
