@@ -44,7 +44,7 @@ export async function initDB(db: D1Database): Promise<D1Result<unknown>[]> {
   const pageInsert = db
     .prepare(
       `INSERT INTO pages(id, page_type) 
-      values(?, ?, ?)
+      values(?, ?)
       ON CONFLICT (id, page_type) DO UPDATE SET 
       name = COALESCE(EXCLUDED.name, pages.name);`
     )
