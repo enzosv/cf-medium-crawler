@@ -107,4 +107,4 @@ database_id = "8e0430a6-676d-4898-84c2-cfa8af3a8562"
 crons = ["* * * * *"]
 
 [placement]
-mode = "smart"
+mode = "off"
