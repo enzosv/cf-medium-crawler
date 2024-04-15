@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "medium"
+name = "medium-crawler"
 main = "src/index.ts"
 compatibility_date = "2024-04-05"
 compatibility_flags = ["nodejs_compat"]
@@ -101,4 +101,10 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "medium"
-database_id = "72140967-fa3a-4f65-a212-636523bc3f58"
+database_id = "8e0430a6-676d-4898-84c2-cfa8af3a8562"
+
+[triggers]
+crons = ["* * * * *"]
+
+[placement]
+mode = "smart"
