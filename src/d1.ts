@@ -92,7 +92,10 @@ export async function saveMedium(
   references: Reference,
   db: D1Database
 ): Promise<D1Result<unknown>[]> {
-  const postInsert = db.prepare(`INSERT INTO posts(
+  const batch: D1PreparedStatement[] = [];
+  const tags: string[] = [];
+  if (references.Post && Object.keys(references.Post).length > 0) {
+    const postInsert = db.prepare(`INSERT INTO posts(
       post_id,
       title,
       published_at,
@@ -124,47 +127,57 @@ export async function saveMedium(
     recommend_count = EXCLUDED.recommend_count,
     response_count = EXCLUDED.response_count
   ;`);
+    for (const key in references.Post) {
+      const post = references.Post[key];
+      const postTags = post.virtuals.tags.map(function (tag) {
+        return tag.slug;
+      });
+      tags.push(...postTags);
+      batch.push(
+        postInsert.bind(
+          post.id,
+          post.title,
+          post.firstPublishedAt,
+          post.updatedAt,
+          post.homeCollectionId,
+          post.creatorId,
+          post.isSubscriptionLocked,
+          post.virtuals.readingTime,
+          post.virtuals.totalClapCount,
+          postTags.join(","),
+          post.virtuals.subtitle,
+          post.virtuals.recommends,
+          post.virtuals.responsesCreatedCount
+        )
+      );
+    }
+  }
+
   const pageInsert = db.prepare(`
   INSERT INTO pages(id, name, page_type) 
   values(?, ?, ?)
   ON CONFLICT (id, page_type) DO UPDATE SET 
   name = COALESCE(EXCLUDED.name, pages.name);`);
-  const batch: D1PreparedStatement[] = [];
-  const tags: string[] = [];
-  for (const key in references.Post) {
-    const post = references.Post[key];
-    const postTags = post.virtuals.tags.map(function (tag) {
-      return tag.slug;
-    });
-    tags.push(...postTags);
-    batch.push(
-      postInsert.bind(
-        post.id,
-        post.title,
-        post.firstPublishedAt,
-        post.updatedAt,
-        post.homeCollectionId,
-        post.creatorId,
-        post.isSubscriptionLocked,
-        post.virtuals.readingTime,
-        post.virtuals.totalClapCount,
-        postTags.join(","),
-        post.virtuals.subtitle,
-        post.virtuals.recommends,
-        post.virtuals.responsesCreatedCount
-      )
-    );
+  if (references.Collection && Object.keys(references.Collection).length > 0) {
+    for (const key in references.Collection) {
+      const page = references.Collection[key];
+      batch.push(pageInsert.bind(page.id, page.name, 2));
+    }
   }
-  for (const key in references.Collection) {
-    const page = references.Collection[key];
-    batch.push(pageInsert.bind(page.id, page.name, 2));
+  if (references.User && Object.keys(references.User).length > 0) {
+    for (const key in references.User) {
+      const page = references.User[key];
+      batch.push(pageInsert.bind(page.userId, page.name, 1));
+    }
   }
-  for (const key in references.User) {
-    const page = references.User[key];
-    batch.push(pageInsert.bind(page.userId, page.name, 1));
+  if (tags.length > 0) {
+    for (const tag of tags) {
+      batch.push(pageInsert.bind(tag, null, 0));
+    }
   }
-  for (const tag of tags) {
-    batch.push(pageInsert.bind(tag, null, 0));
+
+  if (batch.length > 0) {
+    return db.batch(batch);
   }
-  return db.batch(batch);
+  return [];
 }
