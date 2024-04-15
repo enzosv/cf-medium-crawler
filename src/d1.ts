@@ -177,6 +177,7 @@ export async function saveMedium(
   }
 
   if (batch.length > 0) {
+    console.log("saving", batch.length, "posts and pages");
     return db.batch(batch);
   }
   return [];

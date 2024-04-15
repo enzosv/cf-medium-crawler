@@ -79,7 +79,6 @@ export async function fetchMedium(url: string): Promise<Payload> {
     const response = JSON.parse(data) as MediumResponse;
     return response.payload;
   } catch (error) {
-    console.error(data, error, url);
     throw error;
   }
 }

@@ -66,10 +66,10 @@ async function importMedium(db: D1Database) {
             next = undefined;
             break;
           }
-          next = payload.paging.next;
+          next = newNext;
         }
       } catch (error) {
-        console.error(error);
+        console.error(error, url.toString());
         return;
       }
     } while (next);
