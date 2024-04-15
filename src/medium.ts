@@ -75,10 +75,6 @@ export async function fetchMedium(url: string): Promise<Payload> {
   if (data.startsWith(PREFIX)) {
     data = data.slice(PREFIX.length);
   }
-  try {
-    const response = JSON.parse(data) as MediumResponse;
-    return response.payload;
-  } catch (error) {
-    throw error;
-  }
+  const response = JSON.parse(data) as MediumResponse;
+  return response.payload;
 }
