@@ -1,4 +1,4 @@
-import { initDB, logPage, queryPages, saveMedium } from "./d1";
+import { initDB, listPopular, logPage, queryPages, saveMedium } from "./d1";
 import { Next, fetchMedium } from "./medium";
 
 export interface Env {
@@ -7,17 +7,18 @@ export interface Env {
 const ROOTURL = "https://medium.com";
 
 export default {
+  async scheduled(event: Event, env: Env, ctx: ExecutionContext) {
+    const startTime = Date.now();
+    do {
+      await importMedium(env.DB);
+    } while (Date.now() - startTime < 30000);
+  },
   async fetch(
     request: Request,
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    await initDB(env.DB);
-    const startTime = Date.now();
-    do {
-      await importMedium(env.DB);
-    } while (Date.now() - startTime < 30000);
-    return new Response(contributions.toString());
+    return new Response(JSON.stringify(await listPopular(env.DB)));
   },
 };
 
