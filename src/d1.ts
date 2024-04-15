@@ -5,6 +5,31 @@ interface Page {
   page_type: number;
 }
 
+export async function listPopular(db: D1Database) {
+  return db
+    .prepare(
+      `SELECT title, total_clap_count, 
+        post_id, 
+        date(published_at/1000, 'unixepoch'),
+        COALESCE(u.name, ''),
+        COALESCE(c.name, ''), 
+        recommend_count, response_count, reading_time, tags, is_paid
+      FROM posts p
+      LEFT OUTER JOIN pages c
+        ON c.id = p.collection
+		    AND c.page_type = 2
+      LEFT OUTER JOIN pages u
+        ON u.id = p.creator
+        AND u.page_type = 1
+      WHERE total_clap_count > 10000
+      OR (
+        date(published_at/1000, 'unixepoch') > date('now', '-1 month')
+        AND total_clap_count > 1000
+      )
+      ORDER BY total_clap_count DESC;`
+    )
+    .all();
+}
 export async function logPage(db: D1Database, page: Page) {
   return db
     .prepare(
