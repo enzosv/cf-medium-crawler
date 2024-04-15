@@ -39,7 +39,8 @@ export async function logPage(db: D1Database, page: Page) {
       WHERE id = ? 
       AND page_type = ?;`
     )
-    .bind(Math.floor(Date.now() / 1000), page.id, page.page_type);
+    .bind(Math.floor(Date.now() / 1000), page.id, page.page_type)
+    .run();
 }
 
 export async function initDB(db: D1Database): Promise<D1Result<unknown>[]> {
