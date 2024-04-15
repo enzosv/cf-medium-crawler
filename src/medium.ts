@@ -42,7 +42,7 @@ interface Post {
   title: string;
   firstPublishedAt: number;
   updatedAt: number;
-  homeCollectionId: string;
+  homeCollectionId?: string;
   creatorId: string;
   isSubscriptionLocked: boolean;
   virtuals: Virtuals;
