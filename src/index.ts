@@ -47,7 +47,7 @@ async function importMedium(db: D1Database) {
         }
       })();
       const url = new URL(`${ROOTURL}/_/api/${path}/stream`);
-      if (next?.ignoredIds) {
+      if (next?.ignoredIds && next.ignoredIds.length > 0) {
         url.searchParams.append("ignoredIds", next.ignoredIds.join(","));
       }
       if (next?.page) {
@@ -58,20 +58,21 @@ async function importMedium(db: D1Database) {
       }
       const payload = await fetchMedium(url.toString());
       await saveMedium(payload.references, db);
-      contributions++;
       const newNext = payload.paging.next;
       if (newNext) {
         if (
           next &&
           (newNext.to <= next.to ||
             newNext.page <= next.page ||
-            newNext.ignoredIds == next.ignoredIds)
+            JSON.stringify(next.ignoredIds.sort()) ===
+              JSON.stringify(newNext.ignoredIds.sort()))
         ) {
+          console.log("should stop");
           next = undefined;
           break;
         }
-        next = newNext;
       }
+      next = newNext;
     } while (next);
     await logPage(db, page);
   }
