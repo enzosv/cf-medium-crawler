@@ -10,7 +10,12 @@ export default {
   async scheduled(event: Event, env: Env, ctx: ExecutionContext) {
     const startTime = Date.now();
     do {
-      await importMedium(env.DB);
+      try {
+        await importMedium(env.DB);
+      } catch (error) {
+        console.error(error);
+        break;
+      }
     } while (Date.now() - startTime < 30000);
   },
   async fetch(
@@ -51,26 +56,21 @@ async function importMedium(db: D1Database) {
       if (next?.to) {
         url.searchParams.append("next", next.to);
       }
-      try {
-        const payload = await fetchMedium(url.toString());
-        await saveMedium(payload.references, db);
-        contributions++;
-        const newNext = payload.paging.next;
-        if (newNext) {
-          if (
-            next &&
-            (newNext.to <= next.to ||
-              newNext.page <= next.page ||
-              newNext.ignoredIds == next.ignoredIds)
-          ) {
-            next = undefined;
-            break;
-          }
-          next = newNext;
+      const payload = await fetchMedium(url.toString());
+      await saveMedium(payload.references, db);
+      contributions++;
+      const newNext = payload.paging.next;
+      if (newNext) {
+        if (
+          next &&
+          (newNext.to <= next.to ||
+            newNext.page <= next.page ||
+            newNext.ignoredIds == next.ignoredIds)
+        ) {
+          next = undefined;
+          break;
         }
-      } catch (error) {
-        console.error(error, url.toString());
-        return;
+        next = newNext;
       }
     } while (next);
     await logPage(db, page);
