@@ -1,5 +1,5 @@
-import { initDB, listPopular, logPage, queryPages, saveMedium } from "./d1";
-import { Next, fetchMedium } from "./medium";
+import { listPopular, logPage, queryPages, saveMedium } from "./d1";
+import { Next, Reference, fetchMedium } from "./medium";
 
 export interface Env {
   DB: D1Database;
@@ -8,18 +8,40 @@ const ROOTURL = "https://medium.com";
 
 export default {
   async scheduled(event: any, env: Env, ctx: ExecutionContext) {
-        await importMedium(env.DB);
+    await importMedium(env.DB);
   },
   async fetch(
     request: Request,
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    return new Response(JSON.stringify(await listPopular(env.DB)));
+    const response = await (async function () {
+      if (request.method == "POST") {
+        const pathname = new URL(request.url).pathname;
+        console.log(pathname, request.method, request.url);
+        const data = await request.json();
+        console.log(data);
+        if (pathname == "/contribute") {
+          const references = data as Reference;
+          await saveMedium(references, env.DB);
+          return new Response("saved");
+        } else if (pathname == "/log") {
+          const page = data as any;
+          await logPage(env.DB, { id: page.id, page_type: page.page_type });
+          return new Response("logged");
+        }
+      }
+      return new Response(JSON.stringify(await listPopular(env.DB)));
+    })();
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set("Access-Control-Allow-Origin", "*");
+    return new Response(response.body, {
+      headers: responseHeaders,
+      status: response.status,
+      statusText: response.statusText,
+    });
   },
 };
-
-let contributions = 0;
 
 async function importMedium(db: D1Database) {
   const pages = await queryPages(db);
