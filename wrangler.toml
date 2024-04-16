@@ -101,10 +101,10 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "medium"
-database_id = "8e0430a6-676d-4898-84c2-cfa8af3a8562"
+database_id = "67d9224d-4bc2-4f55-be22-322baa6fe759"
 
 [triggers]
 crons = ["* * * * *"]
 
 [placement]
-mode = "off"
+mode = "smart"
