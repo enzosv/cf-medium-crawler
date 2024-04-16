@@ -96,12 +96,15 @@ async function main() {
   const disliked = [];
   const liked = [];
   const def = [];
+  const shared = [];
   for (const d of data) {
     const toggle = localStorage.getItem(d.post_id);
     if (toggle == 1) {
       liked.push(d);
-    } else if (toggle == 0) {
+    } else if (toggle == -1) {
       disliked.push(d);
+    } else if (toggle == 0) {
+      shared.push(d);
     } else {
       def.push(d);
     }
@@ -127,15 +130,26 @@ async function main() {
     table.rows.add(disliked);
     table.draw();
   });
+  $("#shared").on("click", function () {
+    table.clear();
+    table.rows.add(shared);
+    table.draw();
+  });
+  $("#all").on("click", function () {
+    table.clear();
+    table.rows.add(data);
+    table.draw();
+  });
 }
 
 function handleButton(id, data, prefix) {
   switch (id) {
     case "close":
-      localStorage.setItem(data.post_id, 0);
+      localStorage.setItem(data.post_id, -1);
       return;
     case "share":
       share(data.title, prefix + data.post_id);
+      localStorage.setItem(data.post_id, 0);
       return;
     case "check":
       localStorage.setItem(data.post_id, 1);
