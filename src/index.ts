@@ -75,6 +75,9 @@ async function importMedium(db: D1Database) {
         url.searchParams.append("next", next.to);
       }
       const payload = await fetchMedium(url.toString());
+      if (!payload || !payload?.references) {
+        break;
+      }
       await saveMedium(payload.references, db);
       const newNext = payload.paging.next;
       if (newNext) {
@@ -85,7 +88,6 @@ async function importMedium(db: D1Database) {
             JSON.stringify(next.ignoredIds.sort()) ===
               JSON.stringify(newNext.ignoredIds.sort()))
         ) {
-          next = undefined;
           break;
         }
       }
