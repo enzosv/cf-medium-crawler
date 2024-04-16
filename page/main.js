@@ -1,13 +1,26 @@
 async function main() {
   const res = await fetch("https://medium-crawler.enzosv.workers.dev");
   const data = (await res.json()).results;
+  const disliked = [];
+  const liked = [];
+  const def = [];
+  for (const d of data) {
+    const toggle = localStorage.getItem(d.post_id);
+    if (toggle == true) {
+      liked.push(d);
+    } else if (toggle == false) {
+      disliked.push(d);
+    } else {
+      def.push(d);
+    }
+  }
   const freedium = window.location.href.includes("freedium");
   const prefix =
     freedium || is_omnivore
-      ? "https://freedium.cfd/https://medium.com/articles/"
+      ? "https://freedium.cfd/"
       : "https://medium.com/articles/";
   const table = $("#example").DataTable({
-    data: data,
+    data: def,
     ordering: false,
     order: [[1, "desc"]],
     columns: [
@@ -63,9 +76,23 @@ async function main() {
           <div class="row">
           <small>${row.tags ? row.tags.split(",").join(", ") : ""}</small>
           </div>
-          <button type="button" class="btn btn-link">
+          <div class="row">
+          <div class="col-auto">
+          <button id="close" type="button" class="btn btn-link">
+          <img src="close-svgrepo-com.svg" width="24" height="24"/>
+          </button>
+          </div>
+          <div class="col-auto">
+          <button id="share" type="button" class="btn btn-link">
           <img src="share-ios-export-svgrepo-com.svg" width="24" height="24"/>
           </button>
+          </div>
+          <div class="col-auto">
+          <button id="check" type="button" class="btn btn-link">
+          <img src="check-svgrepo-com.svg" width="24" height="24"/>
+          </button>
+          </div>
+          </div>
         </div>`;
         },
       },
@@ -74,13 +101,28 @@ async function main() {
 
   table.on("click", "button", function (e) {
     const data = table.row(e.target.closest("tr")).data();
-    share(data[0], prefix + data[2]);
+    handleButton(e.currentTarget.id, data, prefix);
   });
 
   table.on("touchend", "button", function (e) {
     const data = table.row(e.target.closest("tr")).data();
-    share(data[0], prefix + data[2]);
+    handleButton(e.currentTarget.id, data, prefix);
   });
+}
+
+function handleButton(id, data, prefix) {
+  switch (id) {
+    case "close":
+      localStorage.setItem(data.post_id, false);
+      break;
+    case "share":
+      share(data.title, prefix + data.post_id);
+      break;
+    case "check":
+      localStorage.setItem(data.post_id, true);
+      break;
+  }
+  console.log(localStorage.getItem(data.post_id));
 }
 
 function formatDate(date) {
