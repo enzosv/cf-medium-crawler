@@ -135,8 +135,8 @@ export async function saveMedium(
         postInsert.bind(
           post.id,
           post.title,
-          post.firstPublishedAt,
-          post.updatedAt,
+          post.firstPublishedAt / 1000,
+          post.updatedAt / 1000,
           post.homeCollectionId,
           post.creatorId,
           post.isSubscriptionLocked,
