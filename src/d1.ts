@@ -11,8 +11,8 @@ export async function listPopular(db: D1Database) {
       `SELECT title, total_clap_count, 
         post_id, 
         date(published_at, 'unixepoch') published_at,
-        COALESCE(u.name, '') author,
-        COALESCE(c.name, '') collection, 
+        u.name author,
+        c.name collection, 
         recommend_count, response_count, reading_time, tags, is_paid
       FROM posts p
       LEFT OUTER JOIN pages c
