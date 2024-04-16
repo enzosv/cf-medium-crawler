@@ -10,9 +10,9 @@ export async function listPopular(db: D1Database) {
     .prepare(
       `SELECT title, total_clap_count, 
         post_id, 
-        date(published_at/1000, 'unixepoch'),
-        COALESCE(u.name, ''),
-        COALESCE(c.name, ''), 
+        date(published_at, 'unixepoch') published_at,
+        COALESCE(u.name, '') author,
+        COALESCE(c.name, '') collection, 
         recommend_count, response_count, reading_time, tags, is_paid
       FROM posts p
       LEFT OUTER JOIN pages c
@@ -22,10 +22,7 @@ export async function listPopular(db: D1Database) {
         ON u.id = p.creator
         AND u.page_type = 1
       WHERE total_clap_count > 10000
-      OR (
-        date(published_at/1000, 'unixepoch') > date('now', '-1 month')
-        AND total_clap_count > 1000
-      )
+      OR total_clap_count/(julianday('now')-julianday(published_at, 'unixepoch'))  > 100
       ORDER BY total_clap_count DESC;`
     )
     .all();
