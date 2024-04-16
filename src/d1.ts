@@ -5,6 +5,21 @@ interface Page {
   page_type: number;
 }
 
+export async function listStats(db: D1Database) {
+  return db
+    .prepare(
+      `
+  SELECT page_type, count(*) total,
+  count(*) filter(where last_query is not null) fetched
+  from pages
+  group by page_type
+ union all
+ select 'posts', count(*), (select datetime(max(last_query),'unixepoch') from pages) 
+ from posts;`
+    )
+    .all();
+}
+
 export async function listPopular(db: D1Database) {
   return db
     .prepare(

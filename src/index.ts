@@ -1,4 +1,4 @@
-import { listPopular, logPage, queryPages, saveMedium } from "./d1";
+import { listPopular, listStats, logPage, queryPages, saveMedium } from "./d1";
 import { Next, Reference, fetchMedium } from "./medium";
 
 export interface Env {
@@ -16,8 +16,8 @@ export default {
     ctx: ExecutionContext
   ): Promise<Response> {
     const response = await (async function () {
+      const pathname = new URL(request.url).pathname;
       if (request.method == "POST") {
-        const pathname = new URL(request.url).pathname;
         console.log(pathname, request.method, request.url);
         const data = await request.json();
         console.log(data);
@@ -29,6 +29,11 @@ export default {
           const page = data as any;
           await logPage(env.DB, { id: page.id, page_type: page.page_type });
           return new Response("logged");
+        }
+      }
+      if (request.method == "GET") {
+        if (pathname == "/stats") {
+          return new Response(JSON.stringify(await listStats(env.DB)));
         }
       }
       return new Response(JSON.stringify(await listPopular(env.DB)));
