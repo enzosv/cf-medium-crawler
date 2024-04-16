@@ -35,6 +35,10 @@ export default {
     })();
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set("Access-Control-Allow-Origin", "*");
+    if (request.method == "GET") {
+      responseHeaders.set("Cache-Control", "public, max-age=3600, immutable");
+      responseHeaders.set("Content-Type", "application/json");
+    }
     return new Response(response.body, {
       headers: responseHeaders,
       status: response.status,
