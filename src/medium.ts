@@ -46,6 +46,7 @@ interface Post {
   creatorId: string;
   isSubscriptionLocked: boolean;
   virtuals: Virtuals;
+  inResponseToMediaResourceId: string;
 }
 
 interface Virtuals {
