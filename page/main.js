@@ -1,26 +1,6 @@
-async function main() {
-  const res = await fetch("https://medium-crawler.enzosv.workers.dev");
-  const data = (await res.json()).results;
-  const disliked = [];
-  const liked = [];
-  const def = [];
-  for (const d of data) {
-    const toggle = localStorage.getItem(d.post_id);
-    if (toggle == true) {
-      liked.push(d);
-    } else if (toggle == false) {
-      disliked.push(d);
-    } else {
-      def.push(d);
-    }
-  }
-  const freedium = window.location.href.includes("freedium");
-  const prefix =
-    freedium || is_omnivore
-      ? "https://freedium.cfd/"
-      : "https://medium.com/articles/";
+function setupTable(rows, prefix) {
   const table = $("#example").DataTable({
-    data: def,
+    data: rows,
     ordering: false,
     order: [[1, "desc"]],
     columns: [
@@ -108,21 +88,59 @@ async function main() {
     const data = table.row(e.target.closest("tr")).data();
     handleButton(e.currentTarget.id, data, prefix);
   });
+  return table;
+}
+async function main() {
+  const res = await fetch("https://medium-crawler.enzosv.workers.dev");
+  const data = (await res.json()).results;
+  const disliked = [];
+  const liked = [];
+  const def = [];
+  for (const d of data) {
+    const toggle = localStorage.getItem(d.post_id);
+    if (toggle == 1) {
+      liked.push(d);
+    } else if (toggle == 0) {
+      disliked.push(d);
+    } else {
+      def.push(d);
+    }
+  }
+  const freedium = window.location.href.includes("freedium");
+  const prefix = freedium
+    ? "https://freedium.cfd/"
+    : "https://medium.com/articles/";
+  const table = setupTable(def, prefix);
+
+  $("#default").on("click", function () {
+    table.clear();
+    table.rows.add(def);
+    table.draw();
+  });
+  $("#liked").on("click", function () {
+    table.clear();
+    table.rows.add(liked);
+    table.draw();
+  });
+  $("#disliked").on("click", function () {
+    table.clear();
+    table.rows.add(disliked);
+    table.draw();
+  });
 }
 
 function handleButton(id, data, prefix) {
   switch (id) {
     case "close":
-      localStorage.setItem(data.post_id, false);
-      break;
+      localStorage.setItem(data.post_id, 0);
+      return;
     case "share":
       share(data.title, prefix + data.post_id);
-      break;
+      return;
     case "check":
-      localStorage.setItem(data.post_id, true);
-      break;
+      localStorage.setItem(data.post_id, 1);
+      return;
   }
-  console.log(localStorage.getItem(data.post_id));
 }
 
 function formatDate(date) {
@@ -166,4 +184,6 @@ function cleanNumber(number) {
   return Math.round(number);
 }
 
-main();
+$("document").ready(function () {
+  main();
+});
