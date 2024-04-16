@@ -127,6 +127,9 @@ export async function saveMedium(
   ;`);
     for (const key in references.Post) {
       const post = references.Post[key];
+      if (post.inResponseToMediaResourceId != "") {
+        continue;
+      }
       const postTags = post.virtuals.tags.map(function (tag) {
         return tag.slug;
       });
