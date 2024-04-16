@@ -157,8 +157,7 @@ export async function saveMedium(
   const pageInsert = db.prepare(`
   INSERT INTO pages(id, name, page_type) 
   values(?, ?, ?)
-  ON CONFLICT (id, page_type) DO UPDATE SET 
-  name = COALESCE(EXCLUDED.name, pages.name);`);
+  ON CONFLICT (id, page_type) DO NOTHING;`);
   if (references.Collection && Object.keys(references.Collection).length > 0) {
     for (const key in references.Collection) {
       const page = references.Collection[key];
