@@ -108,7 +108,7 @@ export async function saveMedium(
       recommend_count,
       response_count
   ) values(
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, NULLIF(?,''), ?, ?, ?, ?, NULLIF(?,''), NULLIF(?,''), ?, ?
   )
   ON CONFLICT(post_id) 
     DO UPDATE SET 
