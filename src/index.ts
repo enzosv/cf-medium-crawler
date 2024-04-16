@@ -7,16 +7,8 @@ export interface Env {
 const ROOTURL = "https://medium.com";
 
 export default {
-  async scheduled(event: Event, env: Env, ctx: ExecutionContext) {
-    const startTime = Date.now();
-    do {
-      try {
+  async scheduled(event: any, env: Env, ctx: ExecutionContext) {
         await importMedium(env.DB);
-      } catch (error) {
-        console.error(error);
-        break;
-      }
-    } while (Date.now() - startTime < 30000);
   },
   async fetch(
     request: Request,
@@ -67,7 +59,6 @@ async function importMedium(db: D1Database) {
             JSON.stringify(next.ignoredIds.sort()) ===
               JSON.stringify(newNext.ignoredIds.sort()))
         ) {
-          console.log("should stop");
           next = undefined;
           break;
         }

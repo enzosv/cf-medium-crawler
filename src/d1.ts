@@ -81,7 +81,7 @@ export async function queryPages(db: D1Database): Promise<D1Result<Page>> {
       `SELECT id, page_type
       FROM pages
       ORDER BY last_query, page_type DESC
-      LIMIT 2;`
+      LIMIT 4;`
     )
     .all<Page>();
 }
